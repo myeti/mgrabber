@@ -35,7 +35,8 @@ class Downloader {
     for(let chapter of this.manga.chapters) {
 
       // create chapter folder
-      chapter.folder = chapter.name ? `${chapter.number} - ${chapter.name}` : chapter.number
+      chapter.folder = chapter.number
+      if(chapter.name && chapter.name != chapter.number) chapter.folder += `- ${chapter.name}`
       chapter.folder = chapter.folder.toString().replace(/[:]/g, ' ').replace(/['?]/g, '')
       chapter.path = path.resolve(this.manga.path, chapter.folder)
       if(!fs.existsSync(chapter.path)) fs.mkdirSync(chapter.path)
@@ -44,7 +45,7 @@ class Downloader {
       for(let page of chapter.pages) {
 
         // add page request to stack
-        page.file = `${page.number}.${path.extname(page.url)}`
+        page.file = `${page.number}${path.extname(page.url)}`
         page.path = path.resolve(chapter.path, page.file)
         if(!fs.existsSync(page.path)) {
           stack.push(() => {
@@ -61,7 +62,7 @@ class Downloader {
 
     // start executing stack
     return this.unstack(stack)
-      .then(() => { this.log() })
+      .then(() => { this.log('') })
   }
 
 

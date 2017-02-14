@@ -1,4 +1,5 @@
 const PDFKit = require('pdfkit')
+const path = require('path')
 const fs = require('fs')
 
 class PDF {
@@ -9,6 +10,7 @@ class PDF {
    */
   constructor(manga, folder, logger) {
 
+    this.manga = manga
     this.log = logger
 
     // create file
@@ -26,22 +28,23 @@ class PDF {
   /**
    * Build manga to pdf
    */
-  build(manga) {
+  build() {
 
-    const total = manga.chapters.length
+    const total = this.manga.chapters.length
     let done = 0
 
-    for(let chapter of manga.chapters) {
+    for(let chapter of this.manga.chapters) {
 
       this.chapter(chapter.folder)
       for(let page of chapter.pages) {
         this.page(page.path)
       }
 
+      done++
       this.log(`-> ${done}/${total} ${done*100/total}%`, true)
     }
 
-    this.log()
+    this.log('')
     return this.save()
   }
 

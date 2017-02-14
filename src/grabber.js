@@ -24,13 +24,15 @@ class Grabber {
     if(!name) return this.api.getMangas()
     else {
       return this.find(name)
-        .then(manga => this.download(manga))
-        .then(() => {
-          if(opt == '-pdf') {
-            return this.pdf(manga)
-          }
+        .then(manga => {
+          return this.download(manga)
+            .then(() => {
+              if(opt == '-pdf') {
+                return this.pdf(manga)
+              }
+            })
+            .then(() => this.open(manga))
         })
-        .then(() => this.open(manga))
     }
   }
 
@@ -78,9 +80,8 @@ class Grabber {
    * Open explorer
    */
   open(manga) {
-    let folder = path.resolve(this.folder, manga.name)
-    let path = folder.replace(/ /g, '\ ')
-    require('child_process').exec(`start "" "${path}"`)
+    let folder = path.resolve(this.folder, manga.name).replace(/ /g, '\ ')
+    require('child_process').exec(`start "" "${folder}"`)
   }
 
 
