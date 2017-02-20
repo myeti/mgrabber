@@ -9,11 +9,23 @@ npm install
 ## Fetch manga list
 
 ```
-node app.js
+node grab.js -fetch
 ```
 
 ## Download a specific manga
 
 ```
-node app.js beelzebub -pdf
+node grab.js beelzebub
+```
+
+## Download a specific manga AND build it into pdf
+
+```
+node grab.js beelzebub -pdf
+```
+
+To chunk into multiple pdf file:
+
+```
+node grab.js beelzebub -pdf=10
 ```

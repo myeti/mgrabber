@@ -36,7 +36,7 @@ class Downloader {
 
       // create chapter folder
       chapter.folder = chapter.number
-      if(chapter.name && chapter.name != chapter.number) chapter.folder += `- ${chapter.name}`
+      if(chapter.name && chapter.name != chapter.number) chapter.folder += ` - ${chapter.name}`
       chapter.folder = chapter.folder.toString().replace(/[:]/g, ' ').replace(/['?]/g, '')
       chapter.path = path.resolve(this.manga.path, chapter.folder)
       if(!fs.existsSync(chapter.path)) fs.mkdirSync(chapter.path)
@@ -52,17 +52,20 @@ class Downloader {
             return this.download(page)
               .then(() => {
                 done++
-                this.log(`-> ${done}/${total} ${(done*100/total).toFixed(2)}%`, true)
+                let progress = done * 100 / total
+                this.log(`-> ${done}/${total} ${(progress).toFixed(2)}%`, true)
               })
           })
         }
+        else total--
       }
 
     }
 
     // start executing stack
-    return this.unstack(stack)
+    return this.unstack(stack.reverse())
       .then(() => { this.log('') })
+      .then(() => this.manga)
   }
 
 

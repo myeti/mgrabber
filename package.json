@@ -1,7 +1,13 @@
 {
+  "devDependencies": {
+    "windows-build-tools": "^1.2.0",
+    "node-gyp": "^3.5.0",
+  },
   "dependencies": {
+    "minimist": "^1.2.0",
     "request": "^2.79.0",
     "request-promise": "^4.1.1",
-    "pdfkit": "^0.8.0"
+    "pdfkit": "^0.8.0",
+    "sharp": "^0.17.2"
   }
 }

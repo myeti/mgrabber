@@ -20,20 +20,38 @@ class Grabber {
   /**
    * Run grabbing
    */
-  run(name, opt) {
-    if(!name) return this.api.getMangas()
-    else {
-      return this.find(name)
-        .then(manga => {
-          return this.download(manga)
-            .then(() => {
-              if(opt == '-pdf') {
-                return this.pdf(manga)
-              }
-            })
-            .then(() => this.open(manga))
-        })
+  run(name, opts) {
+
+    if(!name) {
+      this.log('Hello :)')
+      this.log('node grab.js -fetch : fetch manga list')
+      this.log('node grab.js beelzebub : download manga images, ignore if image already exists')
+      this.log('node grab.js beelzebub --force : download manga images, rewrite if image already exists')
+      this.log('node grab.js beelzebub --pdf : download and build images into one pdf volume')
+      this.log('node grab.js beelzebub --pdf=10 : download and build images into 10 pdf volumes')
+      return;
     }
+    else if(!name && opts.fetch) {
+      return this.fetch()
+    }
+
+    return this.find(name)
+      .then(manga => this.download(manga))
+      .then(manga => {
+        if(opts.pdf) return this.pdf(manga, opts.pdf)
+      })
+  }
+
+
+
+  /**
+   * fetch manga catalog
+   */
+  fetch() {
+
+    this.log('Fetch manga list')
+
+    return this.api.getMangas()
   }
 
 
@@ -66,22 +84,12 @@ class Grabber {
   /**
    * Build manga images into pdf
    */
-  pdf(manga) {
+  pdf(manga, chunk) {
 
     this.log(`Building PDF`)
     const pdf = new PDF(manga, this.folder, this.log)
 
-    return pdf.build()
-  }
-
-
-
-  /**
-   * Open explorer
-   */
-  open(manga) {
-    let folder = path.resolve(this.folder, manga.name).replace(/ /g, '\ ')
-    require('child_process').exec(`start "" "${folder}"`)
+    return pdf.build(chunk)
   }
 
 
