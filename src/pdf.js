@@ -54,12 +54,8 @@ class PDF {
     // build volumes
     for(let i in volumes) {
       this.stack.unshift(() => {
-
-        // resolve volume number
-        const volume = (volumes.length == 1) ? null : parseInt(i) + 1
-
-        // build volume
         const chapters = volumes[i]
+        const volume = (volumes.length == 1) ? null : parseInt(i) + 1
         return this.buildVolume(chapters, volume)
       })
     }
@@ -86,7 +82,7 @@ class PDF {
     this.pdf.pipe(this.stream)
 
     // reset stats
-    this.total = chapters.length
+    this.total = 0
     this.done = 0
 
     // add intro
@@ -96,6 +92,7 @@ class PDF {
     // build chapters
     let stackChapters = []
     for(let chapter of chapters) {
+      this.total += chapter.pages.length
       stackChapters.unshift(() => this.buildChapter(chapter, volume))
     }
 
@@ -121,12 +118,11 @@ class PDF {
     // add pages
     const sortedPages = _.sortBy(chapter.pages, 'number')
     for(let page of sortedPages) {
-      stackPages.unshift(() => this.buildPage(page.path))
+      stackPages.unshift(() => this.buildPage(page.path, volume))
     }
 
     // update progress
     return this.unstack(stackPages)
-      .then(() => { this.logProgress(volume) })
   }
 
 
@@ -134,11 +130,12 @@ class PDF {
   /**
    * Resize and add image to pdf
    */
-  buildPage(filepath) {
+  buildPage(filepath, volume) {
     return sharp(filepath).resize(this.WIDTH).toBuffer()
       .then(buffer => {
         this.pdf.addPage().image(buffer, 30, 0, {width: this.WIDTH})
       })
+      .then(() => { this.logProgress(volume) })
   }
 
 
