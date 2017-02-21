@@ -37,7 +37,7 @@ class Grabber {
     }
 
     return this.find(name)
-      .then(manga => this.download(manga))
+      .then(manga => this.download(manga, opts.force))
       .then(manga => {
         if(opts.pdf) return this.pdf(manga, opts.pdf)
       })
@@ -65,6 +65,7 @@ class Grabber {
     this.log(`Search manga "${name}"...`)
 
     return this.api.getManga(name)
+      .catch(() => { this.log('** no manga found') })
   }
 
 
@@ -72,12 +73,12 @@ class Grabber {
   /**
    * Download manga images
    */
-  download(manga) {
+  download(manga, force) {
 
     this.log(`Downloading images`)
     const downloader = new Downloader(manga, this.folder, this.log)
 
-    return downloader.start()
+    return downloader.start(force)
   }
 
 

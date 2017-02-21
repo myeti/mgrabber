@@ -38,9 +38,6 @@ class PDF {
       stack.push(() => {
 
         const chapters = parts[i].reverse()
-        if(!onefile) {
-          this.log(`-> volume ${i+1}`)
-        }
 
         // create pdf document
         const docname = onefile ? this.manga.alias : `${this.manga.alias}-vol${i+1}`
@@ -77,7 +74,8 @@ class PDF {
               .then(() => {
                 done++
                 const progress = done * 100 / total
-                this.log(`-> ${done}/${total} ${progress.toFixed(2)}%`, true)
+                const prefix = onefile ? '' : `volume ${i+1}: `
+                this.log(`-> ${prefix}${done}/${total} ${progress.toFixed(2)}%`, true)
               })
           })
         }

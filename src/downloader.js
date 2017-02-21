@@ -21,7 +21,7 @@ class Downloader {
   /**
    * Start downloading mange
    */
-  start() {
+  start(force) {
 
     let total = 0
     let done = 0
@@ -47,7 +47,7 @@ class Downloader {
         // add page request to stack
         page.file = `${page.number}${path.extname(page.url)}`
         page.path = path.resolve(chapter.path, page.file)
-        if(!fs.existsSync(page.path)) {
+        if(force || !fs.existsSync(page.path)) {
           stack.push(() => {
             return this.download(page)
               .then(() => {
@@ -65,7 +65,7 @@ class Downloader {
     // start executing stack
     return this.unstack(stack.reverse())
       .then(() => {
-        this.log('')
+        if(done) this.log('')
         this.log('-> done')
       })
       .then(() => this.manga)
