@@ -23,16 +23,17 @@ class Grabber {
   run(name, opts) {
 
     if(!name) {
+
+      // refresh catalog
+      if(opts.fetch) return this.fetch()
+
+      // display all options
       this.log('Hello :)')
-      this.log('node grab.js -fetch : fetch manga list')
+      this.log('node grab.js --fetch : fetch manga list')
       this.log('node grab.js beelzebub : download manga images, ignore if image already exists')
-      this.log('node grab.js beelzebub --force : download manga images, rewrite if image already exists')
       this.log('node grab.js beelzebub --pdf : download and build images into one pdf volume')
       this.log('node grab.js beelzebub --pdf=10 : download and build images into 10 pdf volumes')
       return;
-    }
-    else if(!name && opts.fetch) {
-      return this.fetch()
     }
 
     return this.find(name)
