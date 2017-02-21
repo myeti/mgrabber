@@ -64,7 +64,10 @@ class Downloader {
 
     // start executing stack
     return this.unstack(stack.reverse())
-      .then(() => { this.log('') })
+      .then(() => {
+        this.log('')
+        this.log('-> done')
+      })
       .then(() => this.manga)
   }
 

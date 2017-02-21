@@ -39,7 +39,7 @@ class PDF {
 
         const chapters = parts[i].reverse()
         if(!onefile) {
-          this.log(`-> building volume ${i+1}`)
+          this.log(`-> volume ${i+1}`)
         }
 
         // create pdf document
@@ -90,6 +90,9 @@ class PDF {
     }
 
     return this.unstack(stack.reverse())
+      .then(() => {
+        this.log('-> done'))
+      })
       .then(() => this.manga)
   }
 
@@ -121,7 +124,6 @@ class PDF {
    * Terminate file
    */
   save(stream, doc) {
-    this.log('-> saving document')
     return new Promise((resolve, reject) => {
       stream.on('finish', () => stream.close(resolve))
       doc.end()
