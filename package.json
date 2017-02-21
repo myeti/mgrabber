@@ -1,6 +1,8 @@
 {
+  "optionalDependencies": {
+    "windows-build-tools": "^1.2.0"
+  },
   "devDependencies": {
-    "windows-build-tools": "^1.2.0",
     "node-gyp": "^3.5.0"
   },
   "dependencies": {
