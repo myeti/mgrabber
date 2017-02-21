@@ -4,6 +4,7 @@ const minimist = require('minimist')
 const Api = require('./src/api/manga-eden')
 const Grabber = require('./src/grabber')
 
+
 const folder = path.resolve(__dirname, 'mangas')
 
 const api = new Api(folder)

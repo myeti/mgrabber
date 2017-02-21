@@ -40,7 +40,9 @@ class Grabber {
       .then(manga => this.download(manga, opts.force))
       .then(manga => {
         if(opts.pdf) return this.pdf(manga, opts.pdf)
+        return manga
       })
+      .then(manga => this.open(manga))
   }
 
 
@@ -92,6 +94,15 @@ class Grabber {
     const pdf = new PDF(manga, this.folder, this.log)
 
     return pdf.build(chunk)
+  }
+
+
+
+  /**
+   * Open explorer to manga folder
+   */
+  open(manga) {
+    require('child_process').exec(`start "" "${manga.path.base}"`)
   }
 
 

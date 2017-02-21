@@ -1,5 +1,2 @@
 node_modules
-mangas/*/*/*.jpg
-mangas/*/*/*.png
-mangas/*.pdf
-mangas/*.json
+mangas/*

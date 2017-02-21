@@ -13,9 +13,19 @@ class PDF {
    * Create new PDF file
    */
   constructor(manga, folder, logger) {
+
+    this.WIDTH = 550
+
     this.manga = manga
     this.folder = folder
     this.log = logger
+
+    this.stack = []
+    this.total = 0
+    this.done = 0
+
+    this.stream = null
+    this.pdf = null
   }
 
 
@@ -25,95 +35,122 @@ class PDF {
    */
   build(chunk) {
 
-    // resolve chunk number
+    // reset stats
+    this.stack = []
+    this.total = 0
+    this.done = 0
+
+    // split chapters into volumes
     chunk = parseInt(chunk)
-    const onefile = !chunk
     if(!chunk) chunk = this.manga.chapters.length
-    const parts = _.chunk(this.manga.chapters, chunk).reverse()
 
-    // stack all docs for synchronous writing
-    let stack = []
-    for(let i in parts) {
-      i = parseInt(i)
-      stack.push(() => {
+    // sort chapter
+    const sortedChapters = _.sortBy(this.manga.chapters, 'number')
+    const volumes = _.chunk(sortedChapters, chunk)
+    if(volumes.length > 1) {
+      this.log(`-> ${volumes.length} volumes`)
+    }
 
-        const chapters = parts[i].reverse()
+    // build volumes
+    for(let i in volumes) {
+      this.stack.unshift(() => {
 
-        // create pdf document
-        const docname = onefile ? this.manga.alias : `${this.manga.alias}-vol${i+1}`
-        const filename = path.resolve(this.folder, `${docname}.pdf`)
-        let stream = fs.createWriteStream(filename)
-        let doc = new PDFKit()
-        doc.pipe(stream)
+        // resolve volume number
+        const volume = (volumes.length == 1) ? null : parseInt(i) + 1
 
-        // init progress
-        const total = chapters.length
-        let done = 0
-
-        // add intro
-        doc.moveDown(20).fontSize(32).text(this.manga.name, {align: 'center'})
-        if(!onefile) {
-          doc.moveDown().text(i+1, {align: 'center'})
-        }
-
-        let stackChapters = []
-        for(let chapter of chapters) {
-          stackChapters.push(() => {
-
-            // add pages
-            let stackPages = []
-            for(let page of chapter.pages) {
-              stackPages.push(() => this.page(doc, page.path))
-            }
-
-            // add chapter
-            stackPages.push(() => this.chapter(doc, chapter.folder))
-
-            // update progress
-            return this.unstack(stackPages)
-              .then(() => {
-                done++
-                const progress = done * 100 / total
-                const prefix = onefile ? '' : `volume ${i+1}: `
-                this.log(`-> ${prefix}${done}/${total} ${progress.toFixed(2)}%`, true)
-              })
-          })
-        }
-
-        // save doc
-        return this.unstack(stackChapters.reverse())
-          .then(() => { this.log('') })
-          .then(() => this.save(stream, doc))
+        // build volume
+        const chapters = volumes[i]
+        return this.buildVolume(chapters, volume)
       })
     }
 
-    return this.unstack(stack.reverse())
-      .then(() => {
-        this.log('-> done')
-      })
+    return this.unstack(this.stack)
+      .then(() => { this.log('-> done') })
       .then(() => this.manga)
   }
 
 
 
   /**
-   * Add chapter page
+   * Build volume doc
    */
-  chapter(doc, name) {
-    doc.addPage().fontSize(26).text(name, {align: 'center'})
-    return Promise.resolve()
+  buildVolume(chapters, volume) {
+
+    // resolve volume name and path
+    const filename = volume ? `${this.manga.alias}-vol${volume}` : this.manga.alias
+    const filepath = path.resolve(this.manga.path.pdfs, `${filename}.pdf`)
+
+    // init stream and document
+    this.stream = fs.createWriteStream(filepath)
+    this.pdf = new PDFKit()
+    this.pdf.pipe(this.stream)
+
+    // reset stats
+    this.total = chapters.length
+    this.done = 0
+
+    // add intro
+    this.pdf.moveDown(20).fontSize(32).text(this.manga.name, {align: 'center'})
+    if(volume) this.pdf.moveDown().fontSize(26).text(`Volume ${volume}`, {align: 'center'})
+
+    // build chapters
+    let stackChapters = []
+    for(let chapter of chapters) {
+      stackChapters.unshift(() => this.buildChapter(chapter, volume))
+    }
+
+    // save pdf
+    return this.unstack(stackChapters)
+      .then(() => this.save())
   }
 
 
 
   /**
-   * Add page
+   * Build full chapter into pdf
    */
-  page(doc, img) {
-    return sharp(img).resize(550).toBuffer()
+  buildChapter(chapter, volume) {
+
+    let stackPages = []
+
+    // add chapter page
+    stackPages.push(() => {
+      this.pdf.addPage().moveDown(10).fontSize(26).text(chapter.folder, {align: 'center'})
+    })
+
+    // add pages
+    const sortedPages = _.sortBy(chapter.pages, 'number')
+    for(let page of sortedPages) {
+      stackPages.unshift(() => this.buildPage(page.path))
+    }
+
+    // update progress
+    return this.unstack(stackPages)
+      .then(() => { this.logProgress(volume) })
+  }
+
+
+
+  /**
+   * Resize and add image to pdf
+   */
+  buildPage(filepath) {
+    return sharp(filepath).resize(this.WIDTH).toBuffer()
       .then(buffer => {
-        doc.addPage().image(buffer, 30, 0, {width: 550})
+        this.pdf.addPage().image(buffer, 30, 0, {width: this.WIDTH})
       })
+  }
+
+
+
+  /**
+   * Refresh progress %
+   */
+  logProgress(volume) {
+    this.done++
+    const progress = this.done * 100 / this.total
+    const prefix = volume ? `volume ${volume}: ` : ''
+    this.log(`-> ${prefix}${this.done}/${this.total} ${progress.toFixed(2)}%`, true)
   }
 
 
@@ -121,10 +158,13 @@ class PDF {
   /**
    * Terminate file
    */
-  save(stream, doc) {
-    return new Promise((resolve, reject) => {
-      stream.on('finish', () => stream.close(resolve))
-      doc.end()
+  save() {
+
+    this.log('')
+
+    return new Promise(resolve => {
+      this.stream.on('finish', () => this.stream.close(resolve))
+      this.pdf.end()
     })
   }
 
