@@ -91,7 +91,7 @@ class PDF {
 
     return this.unstack(stack.reverse())
       .then(() => {
-        this.log('-> done'))
+        this.log('-> done')
       })
       .then(() => this.manga)
   }
