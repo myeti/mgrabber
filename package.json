@@ -1,7 +1,7 @@
 {
   "devDependencies": {
     "windows-build-tools": "^1.2.0",
-    "node-gyp": "^3.5.0",
+    "node-gyp": "^3.5.0"
   },
   "dependencies": {
     "minimist": "^1.2.0",
