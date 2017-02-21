@@ -64,7 +64,7 @@ class Grabber {
    */
   find(name) {
 
-    this.log(`Search manga "${name}"...`)
+    this.log(`Search manga "${name}"`)
 
     return this.api.getManga(name)
       .catch(() => { this.log('** no manga found') })
@@ -77,7 +77,7 @@ class Grabber {
    */
   download(manga, force) {
 
-    this.log(`Downloading images`)
+    this.log(`Download scans`)
     const downloader = new Downloader(manga, this.folder, this.log)
 
     return downloader.start(force)
@@ -90,7 +90,7 @@ class Grabber {
    */
   pdf(manga, chunk) {
 
-    this.log(`Building PDF`)
+    this.log(`Build pdf`)
     const pdf = new PDF(manga, this.folder, this.log)
 
     return pdf.build(chunk)
